@@ -1,0 +1,21 @@
+# --- Dataset (prevelik za GitHub; preuzeti zasebno) ---
+data/
+
+# --- Generisani MATLAB artefakti (reproducibilni) ---
+*.mat
+
+# --- MATLAB / Simulink privremeni fajlovi ---
+slprj/
+*.slxc
+*.autosave
+*.asv
+octave-workspace
+
+# --- Raniji pokušaji (izostavljeni iz repozitorija) ---
+projekt_regulacija_temperature.m
+temp_ctrl_pid.slx
+temperature_control_pid.slx
+
+# --- OS ---
+Thumbs.db
+.DS_Store
