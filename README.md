@@ -7,71 +7,67 @@ uz bonus **MRAC** (adaptivni) kontroler.
 
 ---
 
-## 📖 Objašnjenje za sve (bez stručnih riječi)
+## Tok i način odvijanja procesa
 
-### Šta ovaj projekat radi?
+### Cilj
 
-Napravili smo **pametan termostat** — onu spravu na zidu koja drži grijanje
-na željenoj temperaturi. Naš termostat treba da održi sobu na **22 °C**, iako
-soba kreće hladna (**5 °C**, zima) i iako je nešto stalno remeti.
+Reguliše se temperatura prostorije i održava na zadanoj vrijednosti (**22 °C**),
+iako prostorija počinje hladna (**5 °C**, zimski uslovi) i iako je stalno
+remeti vanjski uticaj. Princip je isti kao kod termostata i ponavlja se u krug,
+svake minute:
 
-Princip rada je kao kod svakog termostata, u krug, svake minute:
+1. Izmjeri se trenutna temperatura prostorije.
+2. Uporedi se sa zadanom vrijednošću (22 °C) — koliko odstupa.
+3. Odredi se potrebna snaga grijanja.
+4. Prostorija se zagrije, stanje se promijeni i postupak se vraća na korak 1.
 
-1. **Izmjeri** koliko soba trenutno ima stepeni
-2. **Uporedi** sa ciljem (22 °C) → koliko fali ili je previše?
-3. **Odluči** koliko jako grijati
-4. **Grij**, soba se promijeni, pa nazad na korak 1
+Takvo neprekidno mjerenje vlastitog rezultata i ispravljanje naziva se
+**povratna sprega (feedback)** i osnova je automatske regulacije.
 
-Ovo "stalno mjeri svoj rezultat i ispravlja se" se zove **povratna sprega
-(feedback)** — srce svake automatske regulacije.
+### Ulazni podaci i poremećaj
 
-### Odakle realni podaci i šta je "smetnja"?
+Koristi se tabela sa stvarnim mjerenjima potrošnje električne energije jednog
+domaćinstva (minutna rezolucija, period od više godina). Tabela **ne sadrži
+temperaturu** — sadrži samo podatak o potrošnji struje.
 
-Dobili smo tabelu sa **pravim mjerenjima potrošnje struje** jedne kuće
-(svaka minuta, 4 godine). U tabeli **nema temperature** — ima samo koliko
-struje kuća troši.
+Polazi se od činjenice da se sva potrošena električna energija na kraju
+pretvara u toplotu (uređaji, rasvjeta, mašine zagrijavaju prostor). Zato se
+potrošnja struje koristi kao **poremećaj (disturbance)** — realan i
+nepredvidiv uticaj koji dodatno zagrijava prostoriju, a koji regulator mora
+kompenzovati da bi održao 22 °C. Time se simulacija vodi stvarnim podacima,
+a ne pretpostavljenim.
 
-Ključna ideja: **sva potrošena struja se na kraju pretvori u toplotu**
-(šporet, TV, sijalice, mašine... sve to grije prostor). Zato potrošnju struje
-koristimo kao **smetnju (poremećaj)** — nešto realno i nepredvidivo što stalno
-dodatno zagrijava sobu, a naš termostat se mora boriti protiv toga da bi
-održao tačno 22 °C. Time projekat radi na **stvarnim podacima iz života**, ne
-na izmišljenim.
+### Odnos ulaza i temperature
 
-### Šta je tačno temperatura, a šta nije? (važno!)
+- Potrošnja struje iz tabele nije temperatura, već **ulaz (poremećaj)**.
+- Temperatura se **izračunava** po zakonima fizike (na osnovu toplote koja
+  ulazi od grijača i poremećaja te toplote koja se gubi kroz zidove).
+- Tok je dakle: tabela daje poremećaj → regulator zadaje grijanje →
+  temperatura se izračunava kao odziv prostorije → regulator je očitava i
+  ispravlja se. Postupak se ponavlja kroz cijeli simulirani period.
 
-- Potrošnja struje iz tabele **NIJE** temperatura — to je **ulaz/smetnja**.
-- **Temperaturu računar SAM izračuna** po zakonima fizike (koliko toplote uđe
-  od grijača i smetnje, koliko pobjegne kroz zidove → kolika je nova temp).
-- Dakle: tabela daje smetnju → termostat daje grijanje → **računar iz toga
-  izračuna temperaturu** → termostat je gleda i ispravlja se. I tako u krug.
+### Pretpostavke radi realnosti
 
-### Šta smo uzeli u obzir da bude realno?
+Budući da se ne pretvara sva potrošena energija u korisnu toplotu te
+prostorije, uvedene su dvije pažljive pretpostavke:
 
-Pošto **ne pretvori se SVA struja u korisnu toplotu baš te sobe**, bili smo
-oprezni:
+- Uzima se isključivo **aktivna snaga** (`Global_active_power`), jer se samo
+  ona stvarno troši i pretvara u toplotu. **Jalova snaga**
+  (`Global_reactive_power`) se izostavlja, jer se ne pretvara u toplotu, već
+  oscilira između izvora i potrošača.
+- Uzima se samo dio te snage (≈ **30 %**, parametar `dist_gain = 0.30`) kao
+  toplota koja zaista zagrijava posmatranu prostoriju. Ostatak odlazi na
+  rasvjetu kroz prozore, u druge prostorije i ventilaciju. Time se izbjegava
+  nerealna pretpostavka da sva potrošnja zagrijava upravo tu prostoriju.
 
-- **Koristimo samo "aktivnu" snagu** (`Global_active_power`) — onu koja se
-  zaista troši i pretvara u toplotu. **Jalovu snagu** (`Global_reactive_power`,
-  koja se samo "ljulja" naprijed-nazad i ne grije ništa) **smo izostavili**,
-  jer ona ne daje toplotu.
-- **Uzimamo samo ~30 %** te snage kao toplotu koja zaista zagrije baš ovu
-  sobu (parametar `dist_gain = 0.30`). Ostatak ode na svjetlo kroz prozore,
-  u druge prostorije, ventilaciju i sl. Time izbjegavamo nerealnu pretpostavku
-  da baš sve grije našu sobu.
+### Rezultat
 
-### Šta smo dobili?
-
-Termostat je sobu podigao sa 5 °C na 22 °C i **držao je tu cijeli dan**,
-uprkos stalnoj smetnji. Prosječno odstupanje od cilja: svega **~0.37 °C**.
-Pokazali smo i da je sistem **stabilan** (ne počne divljati) i da je puni PID
-bolji od jednostavnijih varijanti. Kao bonus, **MRAC** regulator **sam uči i
-podešava se** dok radi — to je "adaptivni" dio iz naslova zadatka.
-
-> **Jednom rečenicom:** uzeli smo prave podatke o potrošnji struje, pretvorili
-> ih u toplotnu smetnju (pažljivo: samo aktivnu snagu i samo ~30 % nje), pa
-> napravili pametan termostat koji uspješno i stabilno drži sobu na 22 °C
-> cijeli dan uprkos toj smetnji.
+Temperatura je podignuta sa 5 °C na 22 °C i održavana tokom cijelog
+simuliranog dana, uprkos stalnom poremećaju. Prosječno odstupanje u
+ustaljenom režimu iznosi ≈ **0.37 °C**. Pokazano je da je sistem **stabilan**
+i da puni PID nadmašuje jednostavnije varijante (P, PI). Kao proširenje,
+**MRAC** regulator podešava vlastita pojačanja tokom rada (adaptivno
+upravljanje iz naslova zadatka).
 
 ---
 
