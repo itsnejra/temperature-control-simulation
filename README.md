@@ -91,6 +91,10 @@ držati 22 °C uprkos tom realnom, promjenjivom opterećenju.
 
 ## Blok dijagram (`temp_control.slx`)
 
+![Blok dijagram sistema](figures/0_blok_dijagram.png)
+
+Pojednostavljeni prikaz toka signala:
+
 ```
 Setpoint(22°C) → [Σ greška] → [PID] → [Saturacija grijača] → [Aktuator]
                      ↑                                            ↓
