@@ -172,6 +172,28 @@ Sistem ostaje **stabilan i bez trajne greške** za sve ispitane vrijednosti;
 raste samo prolazno odstupanje pri jačim poremećajima. Izbor 0.30 daje
 realan i blag režim rada.
 
+## Analiza stabilnosti: koja petlja i zašto
+
+Svaki alat za stabilnost vezan je za tačno određenu petlju — to nije
+proizvoljno, nego proizlazi iz same definicije metode. Posmatraju se dvije
+prijenosne funkcije:
+
+- **Otvorena petlja** `L(s) = C(s)·P(s)` — regulator i proces u nizu, bez
+  zatvaranja povratne sprege.
+- **Zatvorena petlja** `T(s) = L(s) / (1 + L(s))` — stvarni sistem koji radi,
+  s povratnom spregom.
+
+| Alat | Petlja | Zašto baš ta petlja |
+|------|--------|---------------------|
+| **Bode + margine** | **otvorena** `L(s)` | Amplitudna i fazna margina su **definisane na otvorenoj petlji** — čitaju se iz amplitude i faze od `L(s)`. One mjere koliko sistem ima rezerve do nestabilnosti; taj podatak postoji samo na otvorenoj petlji. |
+| **Nyquist** | **otvorena** `L(s)` | Nyquistov kriterij je **po prirodi metoda nad otvorenom petljom**: crta se `L(jω)` i broje obilasci tačke (−1, 0) — `Z = N + P`. Cilj je iz otvorene petlje **zaključiti** o zatvorenoj, pa Nyquist na zatvorenoj petlji nema smisla. |
+| **Pole-zero (polovi/nule)** | **zatvorena** `T(s)` | Stvarni sistem koji se izvršava je zatvorena petlja. Njena stabilnost zavisi od korijena `1 + L(s) = 0`, tj. od **polova zatvorene petlje**. Ako su svi Re < 0 → stabilno. Polovi otvorene petlje to ne dokazuju (stabilna otvorena može dati nestabilnu zatvorenu i obrnuto). |
+
+Logika je dakle dvostruka: **otvorena petlja predviđa** stabilnost i daje
+margine (Bode, Nyquist), a **zatvorena petlja direktno potvrđuje** stabilnost
+(položaj polova). Sva tri alata daju isti zaključak — stabilan sistem — što je
+unakrsna provjera iz tri ugla.
+
 ## Grafici sa objašnjenjima
 
 ### Blok dijagram sistema
