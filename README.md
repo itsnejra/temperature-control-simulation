@@ -118,6 +118,19 @@ Setpoint(22°C) → [Σ greška] → [PID] → [Saturacija grijača] → [Aktuat
 | `figures/` | Svi grafici (PNG) |
 | `performanse.csv`, `osjetljivost.csv`, `results.mat` | Numerički rezultati |
 
+## Dataset (preuzimanje)
+
+Dataset se čita **lokalno** i nije uključen u repozitorij (≈ 133 MB, prelazi
+GitHub limit od 100 MB). Preuzima se zasebno i smješta u folder `data/`:
+
+1. Preuzeti *Individual Household Electric Power Consumption* sa
+   [Kaggle](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set)
+   ili [UCI](https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption).
+2. Raspakovati i smjestiti fajl ovako:
+   `data/household_power_consumption.txt`
+
+Skripte zatim čitaju podatke s diska; ništa se ne preuzima tokom izvođenja.
+
 ## Kako pokrenuti
 
 U MATLAB-u (R2023b+, potreban Simulink + Control System Toolbox):
