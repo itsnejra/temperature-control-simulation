@@ -172,6 +172,79 @@ Sistem ostaje **stabilan i bez trajne greške** za sve ispitane vrijednosti;
 raste samo prolazno odstupanje pri jačim poremećajima. Izbor 0.30 daje
 realan i blag režim rada.
 
+## Prijenosna funkcija sistema (algebarski i eksponencijalni oblik)
+
+### Algebarski oblik (racionalna funkcija od `s`)
+
+Gradivni blokovi:
+
+```
+Aktuator:    G_act(s) = 1 / (30 s + 1)
+Prostorija:  G_p(s)   = 0.005 / (600 s + 1)
+Proces:      P(s) = G_act·G_p = 0.005 / (18000 s² + 630 s + 1)
+PID:         C(s) = (8334 s² + 309.6 s + 0.856) / s
+                  = 8334.1 (s + 0.03414)(s + 0.003008) / s
+```
+
+Otvorena petlja `L(s) = C(s)·P(s)`:
+
+```
+            0.002315 s² + 8.600·10⁻⁵ s + 2.378·10⁻⁷
+L(s) = ─────────────────────────────────────────────
+              s³ + 0.035 s² + 5.556·10⁻⁵ s
+```
+
+Zatvorena petlja (s kraja na kraj) `T(s) = L / (1 + L)`:
+
+```
+            0.002315 s² + 8.600·10⁻⁵ s + 2.378·10⁻⁷
+T(s) = ───────────────────────────────────────────────────
+        s³ + 0.03732 s² + 1.416·10⁻⁴ s + 2.378·10⁻⁷
+```
+
+Polovi zatvorene petlje (svi Re < 0 → stabilno):
+`s₁ = −0.0333`, `s₂,₃ = −0.0020 ± 0.0018·j`.
+
+### Eksponencijalni oblik `G(jω) = |G(jω)|·e^{jφ(ω)}`
+
+Za blok prvog reda `K/(τs+1)`, uvrštavanjem `s = jω`:
+
+```
+G(jω) = K/(1+jωτ) = [ K / √(1+(ωτ)²) ] · e^( −j·arctan(ωτ) )
+```
+
+Pojedinačni blokovi:
+
+```
+G_act(jω):  |G| = 1 / √(1+(30ω)²),       φ = −arctan(30ω)
+G_p(jω):    |G| = 0.005 / √(1+(600ω)²),  φ = −arctan(600ω)
+```
+
+Proces (moduli se množe, faze sabiraju):
+
+```
+|P(jω)| = 0.005 / [ √(1+(30ω)²) · √(1+(600ω)²) ]
+ φ_P(ω) = −arctan(30ω) − arctan(600ω)
+```
+
+PID `C(jω) = Kp + j(ωKd − Ki/ω)`:
+
+```
+|C(jω)| = √( Kp² + (ωKd − Ki/ω)² )
+ φ_C(ω) = arctan( (ωKd − Ki/ω) / Kp )
+```
+
+Otvorena i zatvorena petlja:
+
+```
+L(jω) = |C(jω)|·|P(jω)| · e^{ j(φ_C + φ_P) }
+T(jω) = ( |L| / |1+L| ) · e^{ j( argL − arg(1+L) ) }
+```
+
+U eksponencijalnom obliku **moduli se množe, a faze sabiraju** — to je i razlog
+zašto Bode dijagram radi: množenje modula postaje sabiranje u decibelima, a faze
+se direktno sabiraju.
+
 ## Analiza stabilnosti: koja petlja i zašto
 
 Svaki alat za stabilnost vezan je za tačno određenu petlju — to nije
