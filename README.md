@@ -1,5 +1,7 @@
 # Simulacija adaptivnog sistema upravljanja temperaturom (MATLAB / Simulink)
 
+**🇧🇦 Bosanski** | [🇬🇧 English](README.en.md)
+
 Projekt iz predmeta **Računarsko modeliranje i simulacije** (master SE).
 Tema 21 — feedback regulacija temperature sa PID kontrolerom, vođena
 **realnim podacima** o potrošnji električne energije kao toplinskim poremećajem,
