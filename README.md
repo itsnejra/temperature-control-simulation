@@ -95,6 +95,11 @@ držati 22 °C uprkos tom realnom, promjenjivom opterećenju.
 
 ![Blok dijagram sistema](figures/0_blok_dijagram.png)
 
+Struktura modela u Simulinku: referenca (Setpoint) i izmjerena temperatura
+ulaze u sumator greške, PID određuje snagu grijača (ograničenu saturacijom),
+aktuator i prostorija (Plant) daju temperaturu, a realni podaci (Load) preko
+koeficijenta sprege ulaze kao poremećaj. Povratna sprega zatvara petlju.
+
 Pojednostavljeni prikaz toka signala:
 
 ```
@@ -270,14 +275,6 @@ margine (Bode, Nyquist), a **zatvorena petlja direktno potvrđuje** stabilnost
 unakrsna provjera iz tri ugla.
 
 ## Grafici sa objašnjenjima
-
-### Blok dijagram sistema
-![Blok dijagram](figures/0_blok_dijagram.png)
-
-Struktura modela u Simulinku: referenca (Setpoint) i izmjerena temperatura
-ulaze u sumator greške, PID određuje snagu grijača (ograničenu saturacijom),
-aktuator i prostorija (Plant) daju temperaturu, a realni podaci (Load) preko
-koeficijenta sprege ulaze kao poremećaj. Povratna sprega zatvara petlju.
 
 ### 1. Poređenje step odziva P / PI / PID
 ![Step odziv](figures/1_step_poredjenje.png)

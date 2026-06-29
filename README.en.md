@@ -98,6 +98,12 @@ hold 22 °C despite this real, time-varying load.
 
 ![System block diagram](figures/0_blok_dijagram.png)
 
+Structure of the model in Simulink: the reference (Setpoint) and the measured
+temperature enter the error summer, the PID determines the heater power (limited
+by saturation), the actuator and the room (Plant) produce the temperature, and
+the real data (Load) enters as a disturbance through the coupling factor. The
+feedback closes the loop.
+
 Simplified signal-flow view:
 
 ```
@@ -274,15 +280,6 @@ stability (pole locations). All three tools give the same conclusion — a stabl
 system — which is a cross-check from three angles.
 
 ## Plots with explanations
-
-### System block diagram
-![Block diagram](figures/0_blok_dijagram.png)
-
-Structure of the model in Simulink: the reference (Setpoint) and the measured
-temperature enter the error summer, the PID determines the heater power (limited
-by saturation), the actuator and the room (Plant) produce the temperature, and
-the real data (Load) enters as a disturbance through the coupling factor. The
-feedback closes the loop.
 
 ### 1. Step response comparison P / PI / PID
 ![Step response](figures/1_step_poredjenje.png)
