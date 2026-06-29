@@ -112,19 +112,21 @@ Setpoint(22°C) → [Σ greška] → [PID] → [Saturacija grijača] → [Aktuat
 | `run_project.m` | **Glavna skripta**: priprema → tuniranje PID-a → gradnja → simulacija |
 | `analyze_stability.m` | Analiza: P/PI/PID poređenje, Bode, pole-zero, Nyquist, metrika |
 | `mrac_control.m` | Bonus: Model Reference Adaptive Control (adaptivni regulator) |
+| `sensitivity_analysis.m` | Analiza osjetljivosti na koeficijent sprege poremećaja |
 | `temp_control.slx` | Generisani Simulink model |
 | `data/household_power_consumption.txt` | Realni dataset |
 | `figures/` | Svi grafici (PNG) |
-| `performanse.csv`, `results.mat` | Numerički rezultati |
+| `performanse.csv`, `osjetljivost.csv`, `results.mat` | Numerički rezultati |
 
 ## Kako pokrenuti
 
 U MATLAB-u (R2023b+, potreban Simulink + Control System Toolbox):
 
 ```matlab
-run_project          % 1) gradi model i pokreće simulaciju s PID-om
-analyze_stability    % 2) analiza stabilnosti + svi grafici
-mrac_control         % 3) bonus: adaptivni MRAC + poređenje s PID-om
+run_project            % 1) gradi model i pokreće simulaciju s PID-om
+analyze_stability      % 2) analiza stabilnosti + svi grafici
+mrac_control           % 3) bonus: adaptivni MRAC + poređenje s PID-om
+sensitivity_analysis   % 4) analiza osjetljivosti na koeficijent sprege
 ```
 
 ## Ključni rezultati
@@ -144,15 +146,83 @@ RMS greška u ustaljenom režimu **0.37 °C**, maksimalna greška **1.77 °C**.
 RMS greška **0.52 °C**, max **1.76 °C** — uprkos tome što tretira plant
 2. reda kao 1. red (robusnost na nemodelovanu dinamiku).
 
-## Grafici (`figures/`)
+**Osjetljivost na koeficijent sprege (`osjetljivost.csv`):**
 
-1. `1_step_poredjenje.png` — step odziv P/PI/PID
-2. `2_bode_margine.png` — Bode otvorene petlje + gain/phase margin
-3. `3_polezero.png` — pole-zero mapa zatvorene petlje
-4. `4_nyquist.png` — Nyquist dijagram
-5. `5_simulacija.png` — regulacija na realni poremećaj (PID)
-6. `6_mrac.png` — MRAC praćenje + online konvergencija pojačanja
-7. `7_mrac_vs_pid.png` — poređenje greške PID vs MRAC
+| dist_gain | RMS greška | Max greška | Max temp |
+|-----------|-----------|-----------|----------|
+| 0.15 | 0.19 °C | 0.87 °C | 23.5 °C |
+| **0.30** (korišteno) | **0.37 °C** | **1.77 °C** | **24.0 °C** |
+| 0.50 | 0.62 °C | 2.98 °C | 25.0 °C |
+| 0.70 | 1.01 °C | 4.18 °C | 26.2 °C |
+
+Sistem ostaje **stabilan i bez trajne greške** za sve ispitane vrijednosti;
+raste samo prolazno odstupanje pri jačim poremećajima. Izbor 0.30 daje
+realan i blag režim rada.
+
+## Grafici sa objašnjenjima
+
+### Blok dijagram sistema
+![Blok dijagram](figures/0_blok_dijagram.png)
+
+Struktura modela u Simulinku: referenca (Setpoint) i izmjerena temperatura
+ulaze u sumator greške, PID određuje snagu grijača (ograničenu saturacijom),
+aktuator i prostorija (Plant) daju temperaturu, a realni podaci (Load) preko
+koeficijenta sprege ulaze kao poremećaj. Povratna sprega zatvara petlju.
+
+### 1. Poređenje step odziva P / PI / PID
+![Step odziv](figures/1_step_poredjenje.png)
+
+Odziv zatvorene petlje na skok reference. **P** je brz ali ostaje trajna
+greška (ne dostiže 1). **PI** uklanja grešku ali je sporiji i s većim
+preskokom. **PID** ima najmanji preskok i nultu trajnu grešku — najbolji
+kompromis.
+
+### 2. Bode dijagram + margine stabilnosti (PID)
+![Bode](figures/2_bode_margine.png)
+
+Frekvencijski odziv otvorene petlje. Pokazuje **faznu i amplitudnu marginu** —
+mjeru koliko je sistem daleko od nestabilnosti. Visoka fazna margina (≈ 74°)
+znači robustan, dobro prigušen sistem.
+
+### 3. Pole-zero mapa zatvorene petlje (PID)
+![Pole-zero](figures/3_polezero.png)
+
+Položaj polova sistema u kompleksnoj ravni. **Svi polovi su lijevo od
+imaginarne ose (Re < 0)** → sistem je stabilan. Položaj polova određuje
+brzinu i prigušenje odziva.
+
+### 4. Nyquist dijagram (PID)
+![Nyquist](figures/4_nyquist.png)
+
+Još jedan dokaz stabilnosti: kriva ne obuhvata kritičnu tačku (−1, 0), što
+po Nyquistovom kriteriju potvrđuje stabilnost zatvorene petlje.
+
+### 5. Regulacija na realni poremećaj (PID)
+![Simulacija](figures/5_simulacija.png)
+
+Glavni rezultat. Gore: temperatura se diže s 5 °C i drži na 22 °C cijeli dan.
+Sredina: greška ostaje blizu nule. Dolje: vidi se **inverzna sprega** — kad
+poremećaj (potrošnja) skoči, PID smanji snagu grijača, i obrnuto.
+
+### 6. MRAC — praćenje i adaptacija pojačanja
+![MRAC](figures/6_mrac.png)
+
+Adaptivni regulator. Gore: izlaz prati referentni model. Sredina: **pojačanja
+se sama podešavaju (uče) tokom rada** i konvergiraju. Dolje: napor grijača
+prema poremećaju.
+
+### 7. Poređenje greške PID vs MRAC
+![MRAC vs PID](figures/7_mrac_vs_pid.png)
+
+Direktno poređenje greške regulacije fiksnog PID-a i adaptivnog MRAC-a na
+istom realnom poremećaju.
+
+### 8. Analiza osjetljivosti
+![Osjetljivost](figures/8_osjetljivost.png)
+
+Odziv za različite vrijednosti koeficijenta sprege. Gore: temperaturni odzivi.
+Dolje: RMS i maksimalna greška rastu s koeficijentom, ali sistem ostaje
+stabilan — potvrda da zaključci ne zavise kritično od te procjene.
 
 ## Zaključak
 
@@ -161,3 +231,6 @@ mali overshoot i visoka fazna margina (robusnost) — dok ga realni podaci o
 potrošnji konstantno poremećuju. MRAC dodatno pokazuje princip adaptivnog
 upravljanja: regulator uči svoja pojačanja u toku rada, bez prethodnog
 tuniranja, i ostaje stabilan na nemodelovanu dinamiku i realne smetnje.
+Analiza osjetljivosti pokazuje da zaključci o stabilnosti i tačnosti vrijede
+za širok raspon koeficijenta sprege, pa rezultati ne zavise kritično od te
+procjene.
