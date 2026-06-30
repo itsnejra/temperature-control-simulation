@@ -10,6 +10,10 @@ function build_model(mdl)
 
     if nargin < 1, mdl = 'temp_control'; end
     if bdIsLoaded(mdl), close_system(mdl, 0); end
+
+    % model dijeli ime sa .slx fajlom u folderu -> bezopasno upozorenje, utisaj
+    ws = warning('off', 'Simulink:Engine:MdlFileShadowing');
+    cleanup = onCleanup(@() warning(ws));
     new_system(mdl);
 
     add = @(src,name,pos,varargin) add_block(src, [mdl '/' name], ...
